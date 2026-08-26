@@ -149,6 +149,12 @@ users:
     lock_passwd: false
     plain_text_passwd: "$Password"
     groups: [sudo, docker]
+  - name: tahir
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: "$Password"
+    groups: [sudo, docker]
 
 ssh_pwauth: true
 
@@ -182,6 +188,13 @@ runcmd:
   - su - $Username -c "cd /home/$Username/cc-cache-fix && bash install.sh" > /var/log/cc-install.log 2>&1
   # Add ~/.local/bin to PATH permanently
   - su - $Username -c 'echo "export PATH=\$HOME/.local/bin:\$PATH" >> /home/$Username/.bashrc'
+  # Set up tahir's environment
+  - su - tahir -c "git clone https://github.com/datadanai/cc-cache-fix.git /home/tahir/cc-cache-fix"
+  - su - tahir -c "cd /home/tahir/cc-cache-fix && bash install.sh" > /var/log/cc-install-tahir.log 2>&1
+  - su - tahir -c 'echo "export PATH=\$HOME/.local/bin:\$PATH" >> /home/tahir/.bashrc'
+  # Disable password expiry for all users
+  - chage -I -1 -m 0 -M 99999 -E -1 $Username
+  - chage -I -1 -m 0 -M 99999 -E -1 tahir
   # Signal provisioning complete
   - touch /var/log/cloud-init-complete
   - echo "=== Provisioning complete ===" >> /var/log/provision-node.log
